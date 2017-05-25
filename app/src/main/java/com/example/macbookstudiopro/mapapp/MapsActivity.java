@@ -1,11 +1,19 @@
 package com.example.macbookstudiopro.mapapp;
 
+import android.Manifest;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -17,7 +25,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,14 +55,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.addMarker(new MarkerOptions().position(sydney).title("Born Here"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
 
-        LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        Location location = lm.getLastKnownLocation(GP);
-        double longitude = location.getLongitude();
-        double latitude = location.getLatitude();
+        GPSTracker gpsTracker = new GPSTracker(this);
+        double latitude = 0;
+        double longitude = 0;
+
+        if (gpsTracker.getIsGPSTrackingEnabled())
+        {
+            latitude = gpsTracker.getLatitude();
+            longitude = gpsTracker.getLongitude();
+
+        } else{
+        }
+
 
 
         LatLng currentLocation = new LatLng(latitude, longitude);
         mMap.addMarker(new MarkerOptions().position(currentLocation).title("You are here"));
+    }
+
+    public void switchView(View v){
+        mMap.setMapType(((mMap.getMapType()+1)%3) +1);
     }
 
 
