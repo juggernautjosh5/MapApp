@@ -12,6 +12,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.LogPrinter;
 import android.view.View;
 import android.widget.TextView;
 
@@ -25,6 +26,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+    double latitude ;
+    double longitude;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,18 +57,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng sydney = new LatLng(32.885035, -117.225467);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Born Here"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-
-        GPSTracker gpsTracker = new GPSTracker(this);
-        double latitude = 0;
-        double longitude = 0;
-
-        if (gpsTracker.getIsGPSTrackingEnabled())
-        {
-            latitude = gpsTracker.getLatitude();
-            longitude = gpsTracker.getLongitude();
-
-        } else{
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},3);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},3);
         }
+        mMap.setMyLocationEnabled(true);
+
+
+
+
+
+        LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        Log.d("WORK","PLEASE" );
+        lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 10, locationListener);
+
+        Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        longitude = location.getLongitude();
+        latitude = location.getLatitude();
 
 
 
@@ -76,6 +85,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void switchView(View v){
         mMap.setMapType(((mMap.getMapType()+1)%3) +1);
     }
+
+    private final LocationListener locationListener = new LocationListener() {
+        public void onLocationChanged(Location location) {
+            Log.d("ERROR", "KILL ME");
+            longitude = location.getLongitude();
+            latitude = location.getLatitude();
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+
+        }
+    };
+
+
 
 
 }
