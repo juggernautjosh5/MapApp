@@ -231,6 +231,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         
     }
 
+    public void clearIt(View v){
+        mMap.clear();
+    }
+
 
 
 
