@@ -13,6 +13,7 @@ import android.os.Looper;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v7.widget.SearchView;
 import android.text.Editable;
 import android.util.Log;
 import android.util.LogPrinter;
@@ -25,6 +26,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -38,13 +40,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private boolean isGPSEnabled = false;
     private boolean isNetworkEnabled = false;
     private boolean canGetLocation = false;
-    private static final long MIN_TIME_BW_UPDATES = 1000 * 5;
+    private static final long MIN_TIME_BW_UPDATES = 1000 * 1;
     private static final float MIN_DISTANCE_CHANGE_FOR_UPDATES = 0.0f;
 
 
     private double latitude;
     private double longitude;
-    EditText searching;
+    SearchView searching;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +71,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        searching = (EditText) findViewById(R.id.searchView);
 
         // Add a marker in Sydney and move the camera
         LatLng sydney = new LatLng(32.885035, -117.225467);
@@ -84,8 +85,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         getLocation();
 
 
-        LatLng currentLocation = new LatLng(latitude, longitude);
-        mMap.addMarker(new MarkerOptions().position(currentLocation).title("You are here"));
     }
 
     public void switchView(View v) {
@@ -114,7 +113,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, locationListenerGps);
                     Log.d("MyMaps", "getLocation: GPS update request success");
                     Toast.makeText(this, "Using GPS", Toast.LENGTH_SHORT).show();
-                } else if (isNetworkEnabled) {
+                }
+                if (isNetworkEnabled) {
                     Log.d("MyMaps", "getLocation: Network enabled - requesting location updates");
                     locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, locationListenerNetwork);
                     Log.d("MyMaps", "getLocation: Network update request success");
@@ -135,11 +135,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private final LocationListener locationListenerGps = new LocationListener() {
         public void onLocationChanged(Location location) {
             Log.d("MyMaps", "LocationListenerGPS: Got location");
+            Log.d("MyMaps", "LocationListenerGPS-" + location.getLatitude() + " " +location.getLongitude());
+
             longitude = location.getLongitude();
             latitude = location.getLatitude();
             LatLng currentLocation = new LatLng(latitude, longitude);
-            mMap.addMarker(new MarkerOptions().position(currentLocation).title("You are here"));
-            Toast.makeText(MapsActivity.this, "Update: New Marker", Toast.LENGTH_SHORT).show();
+            mMap.addMarker(new MarkerOptions().position(currentLocation).title("You are here").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
+            Toast.makeText(MapsActivity.this, "Update: New GPS Marker", Toast.LENGTH_SHORT).show();
             locationManager.removeUpdates(locationListenerNetwork);
         }
 
@@ -149,6 +151,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             switch (status) {
                 case LocationProvider.AVAILABLE:
                     Log.d("MyMaps", "GPS is now avalible");
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, locationListenerGps);
                     Toast.makeText(MapsActivity.this, "Update: GPS avalible", Toast.LENGTH_SHORT).show();
                     break;
 
@@ -156,16 +159,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 case LocationProvider.TEMPORARILY_UNAVAILABLE:
                     Log.d("MyMaps", "GPS is temporarily unavalible");
                     Toast.makeText(MapsActivity.this, "Update: GPS unavalible", Toast.LENGTH_SHORT).show();
-                    if (ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                        // TODO: Consider calling
-                        //    ActivityCompat#requestPermissions
-                        // here to request the missing permissions, and then overriding
-                        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                        //                                          int[] grantResults)
-                        // to handle the case where the user grants the permission. See the documentation
-                        // for ActivityCompat#requestPermisssions for more details.
-                        return;
-                    }
                     locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, locationListenerNetwork);
                     break;
 
@@ -208,8 +201,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             longitude = location.getLongitude();
             latitude = location.getLatitude();
             LatLng currentLocation = new LatLng(latitude, longitude);
-            mMap.addMarker(new MarkerOptions().position(currentLocation).title("You are here"));
-            Toast.makeText(MapsActivity.this, "Update: New Marker", Toast.LENGTH_SHORT).show();
+            mMap.addMarker(new MarkerOptions().position(currentLocation).title("You are here").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET)));
+            Toast.makeText(MapsActivity.this, "Update: New Network Marker", Toast.LENGTH_SHORT).show();
         }
 
         @Override

@@ -1,7 +1,4 @@
 
-
-
-
 <LinearLayout xmlns:map="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
@@ -11,13 +8,13 @@
 
     <SearchView
         android:id="@+id/searchView"
-        android:layout_width="match_parent"
+        android:layout_width="368dp"
         android:layout_height="match_parent" />
 
     <Button
         android:id="@+id/button2"
-        android:layout_width="374dp"
-        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:onClick="switchView"
         android:text="Switch Views"
         android:textAlignment="center" />
