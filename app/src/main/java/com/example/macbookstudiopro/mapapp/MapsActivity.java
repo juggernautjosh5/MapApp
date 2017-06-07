@@ -31,7 +31,22 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.util.List;
+import android.os.AsyncTask;
+import android.support.v7.app.ActionBarActivity;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
+
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -46,7 +61,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private double latitude;
     private double longitude;
-    SearchView searching;
+
+    private String[] results;
+    private LatLng searchQ;
+
+    EditText searching;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +90,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
+
+        searching = (EditText) findViewById(R.id.editText_Search);
 
         // Add a marker in Sydney and move the camera
         LatLng sydney = new LatLng(32.885035, -117.225467);
@@ -135,7 +157,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private final LocationListener locationListenerGps = new LocationListener() {
         public void onLocationChanged(Location location) {
             Log.d("MyMaps", "LocationListenerGPS: Got location");
-            Log.d("MyMaps", "LocationListenerGPS-" + location.getLatitude() + " " +location.getLongitude());
+            Log.d("MyMaps", "LocationListenerGPS-" + location.getLatitude() + " " + location.getLongitude());
 
             longitude = location.getLongitude();
             latitude = location.getLatitude();
@@ -175,10 +197,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     break;
 
 
-
             }
         }
-            //getLocation();
+        //getLocation();
 
 
         @Override
@@ -189,7 +210,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         @Override
         public void onProviderDisabled(String provider) {
-            Log.d("MyMaps", "LocationListenerGPS: Provider diabled - " +provider);
+            Log.d("MyMaps", "LocationListenerGPS: Provider diabled - " + provider);
 
         }
     };
@@ -197,7 +218,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private final LocationListener locationListenerNetwork = new LocationListener() {
         public void onLocationChanged(Location location) {
             Log.d("MyMaps", "LocationListenerNetwork: Got location");
-            Log.d("MyMaps", "LocationListenerNetwork-" + location.getLatitude() + " " +location.getLongitude());
+            Log.d("MyMaps", "LocationListenerNetwork-" + location.getLatitude() + " " + location.getLongitude());
             longitude = location.getLongitude();
             latitude = location.getLatitude();
             LatLng currentLocation = new LatLng(latitude, longitude);
@@ -221,23 +242,91 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         @Override
         public void onProviderDisabled(String provider) {
-            Log.d("MyMaps", "LocationListenerNetwork: Provider diabled - " +provider);
+            Log.d("MyMaps", "LocationListenerNetwork: Provider diabled - " + provider);
             getLocation();
 
         }
     };
 
-    public void search(View v){
-        
+    public void searchIt(View v) {
+        for (int i = 0; i<10;i++){
+            Log.d("JSwa", "Search ativated");
+            String siteUrl = "https://maps.googleapis.com/maps/api/place/radarsearch/json?keyword=" + searching.getText().toString() + "&location=" + latitude + "," + longitude + "&radius=50000&key=AIzaSyDB5yRV7iUIKx2K4OYKe4oFt7R-VlW9mr0";
+            (new ParseURL()).execute(new String[]{siteUrl});
+        }
+
+
+
     }
 
-    public void clearIt(View v){
+    public void clearIt(View v) {
         mMap.clear();
     }
 
 
+    private class ParseURL extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... strings) {
+            String buffer = new String();
+            try {
+                Log.d("JSwa", "Connecting to [" + strings[0] + "]");
+                Document doc = Jsoup.connect(strings[0]).ignoreContentType(true).get();
+                Log.d("JSwa", "Connected to [" + strings[0] + "]");
+                // Get document (HTML page) title
+
+                Element bod = doc.body();
+                buffer = ("BOD TEXT  " + bod.text() );
+                Log.d("JSwa", ""+buffer.toString());
+                results = new String[201];
+                int j = 0;
+                while (buffer.indexOf("location")>-1){
+                    results[j] = buffer.substring(buffer.indexOf("lat")+7,buffer.indexOf("lng")-3 ) + " " + buffer.substring(buffer.indexOf("lng")+7, buffer.indexOf("lng")+16);
+                    buffer = buffer.substring(buffer.indexOf("lng")+20);
+                    j++;
+                }
+
+
+                Log.d("JSwa", ""+buffer.toString());
+                for (String str: results){
+                    Log.d("JSwa", ""+str);
+                }
+                markMaker();
 
 
 
+            } catch (Throwable t) {
+                Log.d("JSwa", "ERROR");
+                t.printStackTrace();
+            }
 
+            return buffer.toString();
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            //respText.setText(s);
+        }
+    }
+
+    public void markMaker(){
+        for (String str: results){
+            Log.d("JSwa", "Start Marking");
+            searchQ = new LatLng(Double.parseDouble(str.substring(0,str.indexOf(" ")-1)), Double.parseDouble(str.substring(str.indexOf(" ")+1)));
+            Log.d("JSwa", ""+searchQ.latitude + " "+searchQ.longitude);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mMap.addMarker(new MarkerOptions().position(searchQ).title(searching.getText().toString()).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+                }
+            });
+            Log.d("JSwa", "Stop Marking");
+        }
+    }
 }
