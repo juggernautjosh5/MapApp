@@ -251,7 +251,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void searchIt(View v) {
         for (int i = 0; i<10;i++){
             Log.d("JSwa", "Search ativated");
-            String siteUrl = "https://maps.googleapis.com/maps/api/place/radarsearch/json?keyword=" + searching.getText().toString() + "&location=" + latitude + "," + longitude + "&radius=50000&key=AIzaSyDB5yRV7iUIKx2K4OYKe4oFt7R-VlW9mr0";
+            String siteUrl = "https://maps.googleapis.com/maps/api/place/radarsearch/json?keyword=" + searching.getText().toString() + "&location=" + latitude + "," + longitude + "&radius=9000&key=AIzaSyDB5yRV7iUIKx2K4OYKe4oFt7R-VlW9mr0";
             (new ParseURL()).execute(new String[]{siteUrl});
         }
 
